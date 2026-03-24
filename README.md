@@ -1,109 +1,136 @@
-<<<<<<< HEAD
-# 🦞 openClawDemo Backend API
+# openClawDemo Backend API
 
-自动化项目管理演示项目的后端服务。
+自动化项目管理演示 - 后端服务
 
-## 🚀 快速开始
+## 🦞 功能特性
 
-### 安装依赖
+- ✅ **音频文件管理** - 上传、删除、元数据编辑
+- ✅ **播放记录追踪** - 自动记录播放历史和次数
+- ✅ **搜索和分页** - 支持按标题、艺术家、专辑搜索
+- ✅ **统计信息** - 文件数量、总时长、总大小
+- ✅ **JWT 认证** - 简单的用户登录系统
+- ✅ **SQLite 数据库** - 轻量级，无需额外配置
+- ✅ **FFmpeg 集成** - 自动提取音频元数据
+
+## 📦 安装
+
 ```bash
+cd openClawDemo-backend
 npm install
 ```
 
-### 启动服务
-```bash
-# 开发模式（带热重载）
-npm run dev
+## 🚀 运行
 
-# 生产模式
+### 开发环境
+```bash
+npm run dev
+```
+
+### 生产环境
+```bash
 npm start
 ```
 
-### 环境变量
-复制 `.env.example` 为 `.env` 并配置：
-```env
-PORT=8080
-NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
-LOG_LEVEL=info
+## 🔌 API 端点
+
+### 认证
+- `POST /api/auth/login` - 用户登录
+- `GET /api/auth/me` - 获取当前用户信息
+
+### 音频管理
+- `GET /api/audio` - 获取所有音频（支持分页和搜索）
+  - 查询参数：`page`, `limit`, `search`
+- `GET /api/audio/:id` - 获取单个音频详情
+- `POST /api/audio` - 上传音频文件
+- `PUT /api/audio/:id` - 更新音频元数据
+- `DELETE /api/audio/:id` - 删除音频文件
+- `GET /api/audio/:id/history` - 获取播放历史
+- `POST /api/audio/:id/play` - 记录播放事件
+- `GET /api/audio/stats` - 获取统计信息
+
+### 其他
+- `GET /api/health` - 健康检查
+- `GET /` - API 文档
+
+## 📝 使用示例
+
+### 1. 登录
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
 ```
 
-## 📡 API 端点
-
-### 健康检查
-```
-GET /api/health
-```
-返回服务状态和运行信息。
-
-### 播放列表
-```
-GET /api/playlists              # 获取所有播放列表
-GET /api/playlists/:id          # 获取单个播放列表详情
-GET /api/playlists?category=自然  # 按分类筛选
-```
-
-### 音频流
-```
-GET /api/audio/:name            # 获取音频流
-```
-支持的音频：rain, fire, forest, ocean, wind, cafe
-
-## 🏗️ 项目结构
-
-```
-openClawDemo-backend/
-├── src/
-│   ├── config/
-│   │   └── playlists.js        # 播放列表数据配置
-│   ├── routes/
-│   │   ├── playlists.js        # 播放列表路由
-│   │   ├── audio.js            # 音频路由
-│   │   └── health.js           # 健康检查路由
-│   └── server.js               # 服务器入口
-├── .env.example                # 环境变量模板
-├── package.json
-└── README.md
+响应：
+```json
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "username": "admin",
+      "role": "admin"
+    }
+  }
+}
 ```
 
-## 🔧 功能特性
+### 2. 上传音频
+```bash
+curl -X POST http://localhost:3000/api/audio \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "audio=@path/to/your/file.mp3" \
+  -F "title=My Song" \
+  -F "artist=Artist Name"
+```
 
-- ✅ RESTful API 设计
-- ✅ CORS 跨域支持
-- ✅ 请求日志中间件
-- ✅ 错误处理机制
-- ✅ 健康检查接口
-- ✅ 环境配置管理
-- ⏳ 演示模式音频流（生产环境可切换真实文件）
+### 3. 获取音频列表
+```bash
+curl "http://localhost:3000/api/audio?page=1&limit=10&search=rain"
+```
 
-## 📝 开发计划
+### 4. 更新元数据
+```bash
+curl -X PUT http://localhost:3000/api/audio/1 \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Updated Title","artist":"New Artist"}'
+```
 
-### P0 - 已完成
-- [x] Express 服务器搭建
-- [x] 播放列表 API
-- [x] 音频流接口
-- [x] 健康检查
-- [x] 错误处理
+### 5. 记录播放
+```bash
+curl -X POST http://localhost:3000/api/audio/1/play \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
-### P1 - 待实现
-- [ ] 用户认证（JWT）
-- [ ] 播放历史存储
-- [ ] 用户偏好设置
-- [ ] 数据统计分析
+## ⚙️ 环境变量
 
-### P2 - 可选功能
-- [ ] WebSocket 实时推送
-- [ ] 音频波形可视化
-- [ ] 多语言支持
-- [ ] 缓存优化
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| PORT | 服务器端口 | 3000 |
+| NODE_ENV | 运行环境 | development |
+| FRONTEND_URL | 前端 URL (CORS) | * |
+| JWT_SECRET | JWT 密钥 | your-secret-key |
+| JWT_EXPIRES_IN | Token 过期时间 | 7d |
+| ADMIN_USERNAME | 管理员用户名 | admin |
+| ADMIN_PASSWORD | 管理员密码 | admin123 |
+| DB_PATH | 数据库文件路径 | ./data.db |
 
-## 🤝 贡献指南
+## 🔒 安全提示
 
-1. Fork 项目
-2. 创建特性分支 (`git checkout -b feature/amazing`)
-3. 提交更改 (`git commit -m '添加 amazing 功能'`)
-4. 推送到分支 (`git push origin feature/amazing`)
-5. 开启 Pull Request
+⚠️ **生产环境必须修改以下内容：**
+- `JWT_SECRET` - 使用强随机字符串
+- `ADMIN_PASSWORD` - 使用强密码
+- `FRONTEND_URL` - 设置为实际的前端域名
+
+## 🛠️ 技术栈
+
+- **Node.js** + **Express** - Web 框架
+- **SQLite** - 数据库
+- **Multer** - 文件上传
+- **JWT** - 身份验证
+- **FFmpeg/FFprobe** - 音频元数据提取
 
 ## 📄 许可证
 
@@ -111,8 +138,4 @@ MIT License
 
 ---
 
-*由弗诺伦蒂诺 🦞 开发和维护 | 2026-03-24*
-=======
-# openClawDemo-backend
-后端 API 服务 - Express.js
->>>>>>> ecb24c9bedf738fe7ee5dc21ca690eddf7bb7872
+Made with 🦞 by 弗诺伦蒂诺

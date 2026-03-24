@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const playlistRoutes = require('./routes/playlists');
 const audioRoutes = require('./routes/audio');
+const authRoutes = require('./routes/auth');
 const healthRoutes = require('./routes/health');
 
 const app = express();
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
 // API 路由
 app.use('/api/playlists', playlistRoutes);
 app.use('/api/audio', audioRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/health', healthRoutes);
 
 // 根路径
@@ -39,8 +41,16 @@ app.get('/', (req, res) => {
     description: '自动化项目管理演示后端服务',
     endpoints: {
       playlists: 'GET /api/playlists - 获取所有播放列表',
-      playlistDetail: 'GET /api/playlists/:id - 获取单个播放列表',
-      audio: 'GET /api/audio/:name - 获取音频流',
+      audioList: 'GET /api/audio - 获取音频列表（支持分页和搜索）',
+      audioDetail: 'GET /api/audio/:id - 获取单个音频详情',
+      audioUpload: 'POST /api/audio - 上传音频文件',
+      audioUpdate: 'PUT /api/audio/:id - 更新音频元数据',
+      audioDelete: 'DELETE /api/audio/:id - 删除音频文件',
+      audioPlayHistory: 'GET /api/audio/:id/history - 获取播放历史',
+      audioPlay: 'POST /api/audio/:id/play - 记录播放事件',
+      audioStats: 'GET /api/audio/stats - 获取统计信息',
+      authLogin: 'POST /api/auth/login - 用户登录',
+      authMe: 'GET /api/auth/me - 获取当前用户信息',
       health: 'GET /api/health - 健康检查'
     },
     timestamp: new Date().toISOString()
