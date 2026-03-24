@@ -3,8 +3,8 @@ const cors = require('cors');
 require('dotenv').config();
 
 const playlistRoutes = require('./routes/playlists');
-const audioRoutes = require('./routes/audio');
-const authRoutes = require('./routes/auth');
+const mediaRoutes = require('./routes/media');
+const authRoutes = require('./routes/user');
 const healthRoutes = require('./routes/health');
 
 const app = express();
@@ -29,7 +29,7 @@ app.use((req, res, next) => {
 
 // API 路由
 app.use('/api/playlists', playlistRoutes);
-app.use('/api/audio', audioRoutes);
+app.use('/api/media', mediaRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/health', healthRoutes);
 
@@ -38,19 +38,23 @@ app.get('/', (req, res) => {
   res.json({
     name: 'openClawDemo Backend API',
     version: '1.0.0',
-    description: '自动化项目管理演示后端服务',
+    description: '万能个人网站后端服务 - 支持图片、视频、音频、文档等媒体文件管理',
     endpoints: {
-      playlists: 'GET /api/playlists - 获取所有播放列表',
-      audioList: 'GET /api/audio - 获取音频列表（支持分页和搜索）',
-      audioDetail: 'GET /api/audio/:id - 获取单个音频详情',
-      audioUpload: 'POST /api/audio - 上传音频文件',
-      audioUpdate: 'PUT /api/audio/:id - 更新音频元数据',
-      audioDelete: 'DELETE /api/audio/:id - 删除音频文件',
-      audioPlayHistory: 'GET /api/audio/:id/history - 获取播放历史',
-      audioPlay: 'POST /api/audio/:id/play - 记录播放事件',
-      audioStats: 'GET /api/audio/stats - 获取统计信息',
+      // 认证
+      authRegister: 'POST /api/auth/register - 用户注册',
       authLogin: 'POST /api/auth/login - 用户登录',
-      authMe: 'GET /api/auth/me - 获取当前用户信息',
+      authMe: 'GET /api/auth/me - 获取当前用户信息（需要 token）',
+      
+      // 媒体管理
+      mediaList: 'GET /api/media - 获取所有媒体文件（支持分页和筛选）',
+      mediaDetail: 'GET /api/media/:id - 获取单个媒体文件详情',
+      mediaUpload: 'POST /api/media - 上传媒体文件',
+      mediaUpdate: 'PUT /api/media/:id - 更新媒体元数据',
+      mediaDelete: 'DELETE /api/media/:id - 删除媒体文件',
+      mediaDownload: 'GET /api/media/:id/download - 下载媒体文件',
+      mediaStats: 'GET /api/media/stats - 获取媒体统计信息',
+      
+      // 其他
       health: 'GET /api/health - 健康检查'
     },
     timestamp: new Date().toISOString()
@@ -83,11 +87,13 @@ app.listen(PORT, () => {
   console.log('🦞 ==========================================');
   console.log('🦞  openClawDemo Backend API 已启动');
   console.log('🦞 ==========================================');
+  console.log('🦞  万能个人网站后端服务 - 支持图片、视频、音频、文档等');
   console.log(`🦞  运行环境：${process.env.NODE_ENV || 'development'}`);
   console.log(`🦞  监听端口：${PORT}`);
   console.log(`🦞  API 地址：http://localhost:${PORT}`);
   console.log(`🦞  健康检查：http://localhost:${PORT}/api/health`);
-  console.log(`🦞  播放列表：http://localhost:${PORT}/api/playlists`);
+  console.log(`🦞  媒体管理：http://localhost:${PORT}/api/media`);
+  console.log(`🦞  用户认证：http://localhost:${PORT}/api/auth`);
   console.log(`🦞  文档说明：http://localhost:${PORT}/`);
   console.log('🦞 ==========================================');
 });

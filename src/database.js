@@ -9,53 +9,59 @@ const db = new sqlite3.Database(DB_PATH);
 
 // 初始化数据库表结构
 db.serialize(() => {
-  // 音频文件表
+  // 用户表
   db.run(`
-    CREATE TABLE IF NOT EXISTS audio_files (
+    CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      filename TEXT UNIQUE NOT NULL,
-      original_name TEXT NOT NULL,
-      file_path TEXT NOT NULL,
-      file_size INTEGER NOT NULL,
-      duration REAL,
-      bitrate INTEGER,
-      sample_rate INTEGER,
-      format TEXT,
-      title TEXT,
-      artist TEXT,
-      album TEXT,
-      genre TEXT,
-      cover_art TEXT,
-      upload_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-      last_played DATETIME,
-      play_count INTEGER DEFAULT 0
-    )
-  `);
-
-  // 播放历史记录表
-  db.run(`
-    CREATE TABLE IF NOT EXISTS play_history (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      audio_id INTEGER NOT NULL,
-      played_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (audio_id) REFERENCES audio_files(id)
-    )
-  `);
-
-  // 用户配置表
-  db.run(`
-    CREATE TABLE IF NOT EXISTS user_settings (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL,
+      username TEXT UNIQUE NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
+  // 通用媒体文件表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS media_files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      file_name TEXT NOT NULL,
+      original_name TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      file_size INTEGER NOT NULL,
+      file_type TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      metadata TEXT,
+      upload_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_accessed DATETIME,
+      is_public BOOLEAN DEFAULT FALSE,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
   // 创建索引以提高查询性能
-  db.run('CREATE INDEX IF NOT EXISTS idx_audio_filename ON audio_files(filename)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_audio_artist ON audio_files(artist)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_audio_title ON audio_files(title)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_play_history_audio ON play_history(audio_id)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_media_user ON media_files(user_id)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_media_type ON media_files(file_type)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_media_public ON media_files(is_public)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_user_email ON users(email)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_user_username ON users(username)');
+
+  // 初始化管理员用户（仅开发环境）
+  if (process.env.NODE_ENV === 'development') {
+    db.get('SELECT id FROM users WHERE username = ?', ['admin'], (err, row) => {
+      if (!row) {
+        db.run(
+          'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+          ['admin', 'admin@example.com', '$2b$10$EixZaYb4xU58Gpq1R0yWbeb00LU5qUaK6x6h2u7v0h1Gz7v0h1Gz7'],
+          (err) => {
+            if (err) console.error('Failed to create admin user:', err);
+            else console.log('✅ Admin user created (development only)');
+          }
+        );
+      }
+    });
+  }
 
   console.log('✅ 数据库表结构初始化完成');
 });

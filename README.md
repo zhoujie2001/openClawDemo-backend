@@ -1,16 +1,17 @@
-# openClawDemo Backend API
+# 万能个人网站后端服务
 
-自动化项目管理演示 - 后端服务
+支持图片、视频、音频、文档等媒体文件管理
 
 ## 🦞 功能特性
 
-- ✅ **音频文件管理** - 上传、删除、元数据编辑
-- ✅ **播放记录追踪** - 自动记录播放历史和次数
-- ✅ **搜索和分页** - 支持按标题、艺术家、专辑搜索
-- ✅ **统计信息** - 文件数量、总时长、总大小
-- ✅ **JWT 认证** - 简单的用户登录系统
+- ✅ **用户认证** - 注册、登录、JWT token
+- ✅ **通用媒体管理** - 图片、视频、音频、文档等所有类型
+- ✅ **文件上传** - 最大 200MB，自动识别文件类型
+- ✅ **元数据编辑** - 自定义标签、描述、公开状态
+- ✅ **统计信息** - 文件数量、总大小、分类统计
+- ✅ **分页查询** - 支持按类型、公开状态筛选
 - ✅ **SQLite 数据库** - 轻量级，无需额外配置
-- ✅ **FFmpeg 集成** - 自动提取音频元数据
+- ✅ **权限控制** - 每个用户只能访问自己的文件
 
 ## 📦 安装
 
@@ -33,20 +34,20 @@ npm start
 
 ## 🔌 API 端点
 
-### 认证
+### 用户认证
+- `POST /api/auth/register` - 用户注册
 - `POST /api/auth/login` - 用户登录
-- `GET /api/auth/me` - 获取当前用户信息
+- `GET /api/auth/me` - 获取当前用户信息（需要 token）
 
-### 音频管理
-- `GET /api/audio` - 获取所有音频（支持分页和搜索）
-  - 查询参数：`page`, `limit`, `search`
-- `GET /api/audio/:id` - 获取单个音频详情
-- `POST /api/audio` - 上传音频文件
-- `PUT /api/audio/:id` - 更新音频元数据
-- `DELETE /api/audio/:id` - 删除音频文件
-- `GET /api/audio/:id/history` - 获取播放历史
-- `POST /api/audio/:id/play` - 记录播放事件
-- `GET /api/audio/stats` - 获取统计信息
+### 媒体管理
+- `GET /api/media` - 获取所有媒体文件（支持分页和筛选）
+  - 查询参数：`page`, `limit`, `type`, `isPublic`
+- `GET /api/media/:id` - 获取单个媒体文件详情
+- `POST /api/media` - 上传媒体文件
+- `PUT /api/media/:id` - 更新媒体元数据
+- `DELETE /api/media/:id` - 删除媒体文件
+- `GET /api/media/:id/download` - 下载媒体文件
+- `GET /api/media/stats` - 获取统计信息
 
 ### 其他
 - `GET /api/health` - 健康检查
@@ -54,54 +55,70 @@ npm start
 
 ## 📝 使用示例
 
-### 1. 登录
+### 1. 用户注册
 ```bash
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}'
+  -d '{"username":"testuser","email":"test@example.com","password":"password123"}'
 ```
 
 响应：
 ```json
 {
   "success": true,
+  "message": "Registration successful",
   "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "user": {
       "id": 1,
-      "username": "admin",
-      "role": "admin"
-    }
+      "username": "testuser",
+      "email": "test@example.com"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
 }
 ```
 
-### 2. 上传音频
+### 2. 用户登录
 ```bash
-curl -X POST http://localhost:3000/api/audio \
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+```
+
+### 3. 上传照片
+```bash
+curl -X POST http://localhost:3000/api/media \
   -H "Authorization: Bearer YOUR_TOKEN" \
-  -F "audio=@path/to/your/file.mp3" \
-  -F "title=My Song" \
-  -F "artist=Artist Name"
+  -F "file=@path/to/your/photo.jpg" \
+  -F 'metadata={"tags":["vacation","summer"],"description":"My vacation photo"}'
 ```
 
-### 3. 获取音频列表
+### 4. 上传视频
 ```bash
-curl "http://localhost:3000/api/audio?page=1&limit=10&search=rain"
+curl -X POST http://localhost:3000/api/media \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@path/to/your/video.mp4"
 ```
 
-### 4. 更新元数据
+### 5. 获取媒体列表
 ```bash
-curl -X PUT http://localhost:3000/api/audio/1 \
+curl "http://localhost:3000/api/media?page=1&limit=10&type=image" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### 6. 更新元数据
+```bash
+curl -X PUT http://localhost:3000/api/media/1 \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"title":"Updated Title","artist":"New Artist"}'
+  -d '{"isPublic":true,"metadata":{"tags":["public","featured"]}}'
 ```
 
-### 5. 记录播放
+### 7. 下载文件
 ```bash
-curl -X POST http://localhost:3000/api/audio/1/play \
-  -H "Authorization: Bearer YOUR_TOKEN"
+curl "http://localhost:3000/api/media/1/download" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -o downloaded-file.jpg
 ```
 
 ## ⚙️ 环境变量
@@ -113,24 +130,20 @@ curl -X POST http://localhost:3000/api/audio/1/play \
 | FRONTEND_URL | 前端 URL (CORS) | * |
 | JWT_SECRET | JWT 密钥 | your-secret-key |
 | JWT_EXPIRES_IN | Token 过期时间 | 7d |
-| ADMIN_USERNAME | 管理员用户名 | admin |
-| ADMIN_PASSWORD | 管理员密码 | admin123 |
-| DB_PATH | 数据库文件路径 | ./data.db |
 
 ## 🔒 安全提示
 
 ⚠️ **生产环境必须修改以下内容：**
 - `JWT_SECRET` - 使用强随机字符串
-- `ADMIN_PASSWORD` - 使用强密码
 - `FRONTEND_URL` - 设置为实际的前端域名
 
 ## 🛠️ 技术栈
 
 - **Node.js** + **Express** - Web 框架
 - **SQLite** - 数据库
-- **Multer** - 文件上传
+- **bcrypt** - 密码加密
 - **JWT** - 身份验证
-- **FFmpeg/FFprobe** - 音频元数据提取
+- **Multer** - 文件上传
 
 ## 📄 许可证
 
