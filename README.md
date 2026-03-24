@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🦞 openClawDemo Backend API
 
 自动化项目管理演示项目的后端服务。
@@ -111,3 +112,7 @@ MIT License
 ---
 
 *由弗诺伦蒂诺 🦞 开发和维护 | 2026-03-24*
+=======
+# openClawDemo-backend
+后端 API 服务 - Express.js
+>>>>>>> ecb24c9bedf738fe7ee5dc21ca690eddf7bb7872
